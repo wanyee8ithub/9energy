@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>九大能量中心</title>
+<meta name="theme-color" content="#F1CDBE">
+<meta name="description" content="人類圖九大能量中心與五大類型的解讀提問手冊，可離線使用。">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="./icons/favicon-48.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="能量中心">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<style>
+/* Layout: title + mode switch on one row; sticky bodygraph map on the left; one reading panel on the right with three tabs (狀態 / 解讀 / 筆記).
+   Color is semantic only: green = 自在, pink = 非我 or 過度使用, red highlight = 提醒客人. UI chrome stays neutral ink. */
+:root{
+  --bg:#F2F3F6; --surface:#FFFFFF; --fg:#1A2030; --muted:#5A6377; --line:#D5DAE3;
+  --ink:#1A2030; --on-ink:#FFFFFF;
+  --good:#176B33; --good-tint:#E3F3E7; --bad:#A62566; --bad-tint:#FBE6F0; --alert-bg:#FBD0CC; --alert-fg:#8A1710;
+  --font-display:"Noto Serif TC","Noto Serif CJK TC","Source Han Serif TC","Songti TC","PMingLiU","MingLiU",serif;
+  --font-body:"Noto Sans TC","Noto Sans CJK TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161F; --surface:#1B2130; --fg:#E6E9F0; --muted:#9AA3B7; --line:#2E3649;
+    --ink:#E6E9F0; --on-ink:#12161F;
+    --good:#7BDB97; --good-tint:#1B2E22; --bad:#F59AC5; --bad-tint:#36202C; --alert-bg:#5C2320; --alert-fg:#FFD6D2; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161F; --surface:#1B2130; --fg:#E6E9F0; --muted:#9AA3B7; --line:#2E3649;
+  --ink:#E6E9F0; --on-ink:#12161F;
+  --good:#7BDB97; --good-tint:#1B2E22; --bad:#F59AC5; --bad-tint:#36202C; --alert-bg:#5C2320; --alert-fg:#FFD6D2; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.8;
+  padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto}
+h1,h2,h3{font-family:var(--font-display);font-weight:700;margin:0;text-wrap:balance;line-height:1.35}
+button{font:inherit;color:inherit;cursor:pointer}
+:where(button,textarea,.c):focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 24px;margin-bottom:28px}
+h1{font-size:clamp(28px,5vw,38px);letter-spacing:.04em}
+.sub{margin:4px 0 0;color:var(--muted);font-size:15px}
+.seg{display:flex;gap:2px;padding:3px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.seg button{min-height:40px;padding:6px 18px;border:0;border-radius:6px;background:none;color:var(--muted);font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--on-ink);font-weight:700}
+
+/* layout */
+.layout{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:32px;align-items:start}
+@media (max-width:800px){.layout{grid-template-columns:minmax(0,1fr)}}
+aside{position:sticky;top:16px;display:flex;flex-direction:column;gap:20px}
+@media (max-width:800px){aside{position:static}}
+
+/* map */
+.map{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 8px 10px}
+.map svg{display:block;width:100%;max-width:260px;margin:0 auto;height:auto}
+.spine{stroke:var(--line);stroke-width:2}
+.c{cursor:pointer;outline:none}
+.sh{fill:var(--surface);stroke:var(--fg);stroke-width:1.5;transition:fill .15s}
+.c:hover .sh{fill:var(--bg)}
+.c.sel .sh{fill:var(--ink)}
+.c:focus-visible .sh{stroke-width:4}
+.lb{font-family:var(--font-body);font-size:12px;font-weight:500;fill:var(--fg);text-anchor:middle;pointer-events:none}
+.c.sel .lb.in{fill:var(--on-ink)}
+.legend{margin:6px 8px 0;font-size:13px;color:var(--muted);text-align:center}
+
+/* random card */
+.draw{padding-top:4px}
+.draw h3{font-size:16px}
+.draw .who{margin-top:8px;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em}
+.draw p{margin:2px 0 12px;font-family:var(--font-display);font-size:18px;line-height:1.7}
+.btn{width:100%;min-height:44px;padding:8px 14px;border:1px solid var(--line);background:var(--surface);border-radius:6px;font-weight:500}
+.btn:hover{border-color:var(--fg)}
+
+/* panel */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:24px;min-width:0}
+.phead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px}
+.eyebrow{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.panel h2{font-size:clamp(24px,4vw,30px);margin:0}
+.theme{margin:2px 0 0;color:var(--muted)}
+.pn{display:flex;gap:6px;flex:none}
+.pn button{width:44px;height:44px;border:1px solid var(--line);background:var(--surface);border-radius:6px;font-size:20px;line-height:1}
+.pn button:hover{border-color:var(--fg)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:24px;overflow-x:auto;overflow-y:hidden}
+.tab{min-height:44px;padding:8px 14px;white-space:nowrap;background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;color:var(--muted);font-weight:500}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--ink);font-weight:700}
+
+/* semantic labels */
+.tag{display:inline-block;padding:1px 10px;border-radius:12px;font-size:13px;font-weight:700;letter-spacing:.06em}
+.tag.good{background:var(--good-tint);color:var(--good)}
+.tag.bad{background:var(--bad-tint);color:var(--bad)}
+.tag.alert{background:var(--alert-bg);color:var(--alert-fg)}
+
+/* state tab */
+.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:640px){.pair{grid-template-columns:minmax(0,1fr)}}
+.state{padding:18px;border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.state h3{font-size:19px}
+.state p{margin:0}
+.sect{margin-top:28px;padding-top:24px;border-top:1px solid var(--line);display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.sect h3{font-size:19px}
+.sect p{margin:0}
+ul.pts{margin:0;padding-left:1.2em}
+ul.pts li{margin:2px 0}
+.ask{align-self:stretch;padding:14px 16px;background:var(--bg);border-radius:6px;font-family:var(--font-display);font-size:18px;line-height:1.7}
+.ask .lbl{display:block;font-family:var(--font-body);font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.quiet{margin:16px 0 0;color:var(--muted);font-size:15px}
+
+/* read tab */
+.kv{display:grid;gap:24px;margin:0}
+.kv dt{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.kv dd{margin:0}
+.alert{background:var(--alert-bg);color:var(--alert-fg);padding:12px 16px;border-radius:6px;font-weight:500}
+
+/* notes */
+.hint{font-size:14px;color:var(--muted);margin:0 0 8px}
+textarea{width:100%;min-height:180px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;resize:vertical}
+
+/* method */
+.method{margin-top:48px;padding-top:32px;border-top:1px solid var(--line);display:grid;gap:28px}
+.method h2{font-size:22px}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+@media (max-width:800px){.cols{grid-template-columns:minmax(0,1fr);gap:16px}}
+.cols h3{font-size:17px;margin-bottom:2px}
+.cols p{margin:0;font-size:15px;color:var(--muted)}
+.step{font-size:13px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
+.disc{color:var(--muted);font-size:14px;max-width:46em;margin:0}
+.fq{font-family:var(--font-display);font-size:17px;line-height:1.7}
+.cols .fq{font-family:var(--font-display);font-size:17px;line-height:1.7;color:var(--fg)}
+.quiet a{color:var(--fg);text-underline-offset:3px}
+.ctl{display:flex;flex-wrap:wrap;gap:8px}
+.side{display:flex;flex-direction:column;gap:20px}
+.tlist{display:flex;flex-direction:column;gap:8px}
+@media (max-width:800px){.tlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+.titem{text-align:left;padding:12px 16px;min-height:60px;border:1px solid var(--line);background:var(--surface);border-radius:8px;display:flex;flex-direction:column}
+.titem:hover{border-color:var(--fg)}
+.titem[aria-pressed="true"]{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.titem .zh{font-family:var(--font-display);font-weight:700;font-size:18px;line-height:1.4}
+.titem .en{font-size:13px;opacity:.75;line-height:1.4}
+.lead{margin:0 0 24px;color:var(--muted)}
+.lead strong{color:var(--fg)}
+.guide{padding:14px 16px;border:1px solid var(--line);border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>九大能量中心</h1>
+      <p class="sub">人類圖九大能量中心與五大類型的解讀提問手冊。</p>
+    </div>
+    <div class="ctl">
+    <div class="seg" id="view" role="group" aria-label="內容">
+      <button type="button" data-view="centers" aria-pressed="true">能量中心</button>
+      <button type="button" data-view="types" aria-pressed="false">五大類型</button>
+    </div>
+    <div class="seg" id="mode" role="group" aria-label="中心狀態">
+      <button type="button" data-mode="blank" aria-pressed="true">空白中心</button>
+      <button type="button" data-mode="def" aria-pressed="false">有定義</button>
+    </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <div id="centersSide" class="side">
+      <div class="map">
+        <svg id="bodygraph" viewBox="0 0 300 460" role="group" aria-label="人類圖九大能量中心"></svg>
+        <p class="legend" id="legend">白色為空白中心，深色為目前選取</p>
+      </div>
+      <div class="draw" aria-live="polite">
+        <h3>隨機覺察卡</h3>
+        <div class="who" id="drawWho">抽一張問題，在忙亂時問自己</div>
+        <p id="drawQ"></p>
+        <button class="btn" id="drawBtn" type="button">抽一張</button>
+      </div>
+      </div>
+      <div id="typesSide" class="side" hidden><div class="tlist" id="tlist"></div></div>
+    </aside>
+
+    <main>
+      <section class="panel" id="panel"></section>
+    </main>
+  </div>
+
+  <section class="method" id="formula" aria-labelledby="fTitle">
+    <h2 id="fTitle">接話公式</h2>
+    <p class="disc">開口問題不必全部問完，挑一個最符合客人當下分享的情境即可。客人回答後，不要立刻跳到下一個中心，從他的答案繼續問。</p>
+    <div class="cols">
+      <div><div class="step">他說</div><h3>「會，我真的很容易這樣。」</h3><div class="step" style="margin-top:12px">你問</div><p class="fq">通常在什麼情況下最明顯？</p></div>
+      <div><div class="step">他說</div><h3>「偶爾吧。」</h3><div class="step" style="margin-top:12px">你問</div><p class="fq">你記得最近一次發生是什麼時候嗎？</p></div>
+      <div><div class="step">他說</div><h3>「沒有，我不會。」</h3><div class="step" style="margin-top:12px">你回</div><p class="fq">明白，那這個模式目前好像不是你的困擾。我們可以看看其他比較貼近你經驗的部分。</p></div>
+    </div>
+    <p class="disc">這樣你就不必害怕自己沒有問中，因為你不是在猜謎，而是在跟客人一起探索。</p>
+  </section>
+
+  <section class="method" id="mSection" aria-labelledby="mTitle">
+    <h2 id="mTitle">讀空白中心的方法</h2>
+    <div class="cols">
+      <div><h3>有定義的中心</h3><p>通常代表較固定、穩定的能量運作模式。</p></div>
+      <div><h3>空白中心</h3><p>沒有任何閘門被啟動。沒有固定的運作方式，但仍可能接收、放大或感受來自環境與他人的影響。</p></div>
+      <div><h3>未定義中心</h3><p>有啟動閘門，但沒有完整通道連接。有部分固定的主題，同時也會受到環境影響。</p></div>
+    </div>
+    <div class="cols">
+      <div><div class="step">第一層</div><h3>在什麼情境下出現</h3><p>他不是每次都想證明自己，而是在老闆面前特別想證明自己有能力。</p></div>
+      <div><div class="step">第二層</div><h3>內心真正害怕或追求什麼</h3><p>是害怕不被認可、害怕衝突，還是急著擺脫壓力？不只看行為，要了解背後的動機。</p></div>
+      <div><div class="step">第三層</div><h3>如何辨認自己受制約</h3><p>幫助他發現反覆出現的模式，再結合類型、策略、內在權威與實際生活經驗，找出可嘗試的改變。</p></div>
+    </div>
+    <p class="disc">空白中心不代表這個人完全沒有相關能力，也不代表他一定會出現某種行為。人類圖是自我探索系統，這些描述不是經科學驗證的心理診斷，不要單憑一個空白中心就認定某種恐懼或性格。解讀時也要看見他在這個領域累積了什麼觀察與理解。</p>
+  </section>
+</div>
+
+<script>
+var C = [
+ {zh:"頭頂",en:"Head",theme:"靈感與思考的壓力",
+  ease:["不必回答所有問題","他可以接觸不同人的想法，從中獲得靈感，但不會覺得每一個疑問都需要自己解決。"],
+  not:["被問題追著跑","看到別人討論一個問題，就忍不住研究；腦中一直有疑問，甚至睡覺前還在想事情。"],
+  said:"我每天都看很多自我成長的內容，但越看越覺得自己還有很多不懂。",
+  ask:"如果這個問題今天沒有答案，你能不能先讓它存在，不急著解決？",
+  remind:"不必回答每一個問題，也不必把每個人的疑問都扛在自己身上。",
+  caution:"",
+  dtitle:"容易被問題追著跑",dtheme:"靈感、疑問、思考壓力",
+  real:"明明本來在做自己的事，聽到別人在討論某個問題，就突然很想弄清楚答案。",
+  pts:["看到別人焦慮，自己也開始想很多。","覺得每個問題都需要解決，難以放下。","容易把「我有問題想問」變成「我一定要找到答案」。"],
+  q:"這是我真正想研究的問題，還是我只是受不了問題一直存在？",dnote:""},
+ {zh:"邏輯",en:"Ajna",theme:"理解與確定的壓力",
+  ease:["容許自己改變想法","他可以從不同角度理解事情，不需要急著建立一套永遠正確的答案。"],
+  not:["一定要確定自己是對的","害怕自己說錯、被質疑，反覆查資料，或堅持某個觀點來獲得安全感。"],
+  said:"我已經看了十幾篇資料，還是不敢做決定，怕自己判斷錯誤。",
+  ask:"你現在是真的還需要更多資訊，還是希望找到一個保證自己不會出錯的答案？",
+  remind:"理解事情不代表一定要得出結論。你可以有自己的觀點，也可以保留改變的空間。",
+  caution:"",
+  dtitle:"容易懷疑自己的想法",dtheme:"概念、理解、信念",
+  real:"今天覺得 A 很有道理，聽到另一個人說 B，也覺得對，最後反而不知道自己相信什麼。",
+  pts:["很想找到一套絕對正確的答案。","容易因為別人很有自信，就懷疑自己。","為了證明自己有想法，而堅持某個觀點。"],
+  q:"我真的認同這個觀點，還是因為對方講得很肯定？",dnote:""},
+ {zh:"喉嚨",en:"Throat",theme:"表達與被看見的壓力",
+  ease:["不必時刻吸引注意","他可以觀察什麼時候適合表達，不需要每次聚會都發言，也不必透過表現讓大家注意到自己。"],
+  not:["急著說話、做事或證明存在感","害怕沒人注意自己，所以搶著回答、一直解釋，或急著讓別人看見自己的成果。"],
+  said:"開會時，如果我一直沒講話，就覺得自己好像沒有貢獻。",
+  ask:"如果今天你沒有發言，你會覺得自己真的沒有價值，還是只是擔心別人看不見你的價值？",
+  remind:"沒有一直說話，不代表沒有貢獻；不必每一次都靠表達來證明自己的存在。",
+  caution:"",
+  dtitle:"容易急著讓別人看見自己",dtheme:"表達、溝通、被看見",
+  real:"當一群人都在說話時，擔心自己沒有存在感，於是急著插話、解釋或做點什麼。",
+  pts:["有時候很健談，有時候不想說話。","容易覺得自己必須表現，別人才會注意到自己。","可能為了獲得認同，說了其實不必說的話。"],
+  q:"如果現在沒有人注意我，我還需要急著表現嗎？",dnote:""},
+ {zh:"G",en:"G Center",theme:"愛、身份與人生方向",
+  ease:["允許自己在不同環境中展現不同面向","他不需要急著定義自己是誰，也可以透過環境、關係和經歷認識自己。"],
+  not:["一直尋找固定的身份或方向","反覆問自己「我到底是誰」「我這輩子應該做什麼」，或為了得到愛而改變自己。"],
+  said:"我做過很多工作，每次都覺得不適合自己。我是不是根本沒有方向？",
+  ask:"有沒有一些環境，會讓你比較自在，也更容易做自己？",
+  remind:"不必急著找到唯一的身份或終身方向。觀察自己在哪些環境、與哪些人相處時，更能自然地做自己。",
+  caution:"G 中心空白不等於沒有自我，也不代表一定會迷失方向。",
+  dtitle:"容易隨著環境改變方向",dtheme:"身份、愛、方向感",
+  real:"跟不同的人相處，或到了不同環境，突然發現自己呈現出不一樣的一面。",
+  pts:["在某個圈子裡很有自信，換個環境卻不自在。","容易因為喜歡一個人，就跟著對方的生活方向走。","不斷問自己「我到底是誰？我真正想要什麼？」"],
+  q:"是我真的喜歡這條路，還是因為跟這群人在一起，我才覺得這條路很好？",
+  dnote:"重點不是你沒有身份，而是你不必急著用一個固定標籤定義自己。"},
+ {zh:"意志力",en:"Ego",theme:"價值、承諾與證明自己的壓力",
+  ease:["不必用成就衡量自己的價值","他仍然可以有目標、追求成功，但不需要每次都靠完成任務或贏過別人來證明自己。"],
+  not:["不斷證明自己值得","為了被肯定而過度承諾、接下太多工作，或即使已經很累，仍不願意停下來。"],
+  said:"我明明已經完成很多工作，還是覺得自己做得不夠好。",
+  ask:"如果沒有人知道你做了多少，你還會想做這件事嗎？為什麼？",
+  remind:"在答應別人之前，先確認自己是否真的想做、是否有能力承擔。可以努力，但不必用過度努力換取被愛或被肯定的資格。",
+  caution:"",
+  dtitle:"容易想證明自己有價值",dtheme:"承諾、意志力、自我價值",
+  real:"別人說你做不到，你反而更想做到；答應了事情，就算很累也不想認輸。",
+  pts:["不想讓別人失望，什麼都答應。","把工作成果、收入或成就當成自我價值的證明。","為了證明自己可靠，承擔超出能力或意願的責任。"],
+  q:"即使我不需要向任何人證明自己，我還願意做這件事嗎？",dnote:""},
+ {zh:"脾",en:"Spleen",theme:"直覺、安全與放手的壓力",
+  ease:["能觀察自己的恐懼，不被它綁住","他可以察覺環境和身體的反應，慢慢辨認哪些關係或習慣適合自己。"],
+  not:["因為害怕未知而抓住熟悉的事物","即使一段關係已經不舒服、一份工作已經不適合，仍然因為害怕改變而不願離開。"],
+  said:"這份工作讓我很不開心，可是我做了八年，真的不敢離開。",
+  ask:"如果暫時不考慮離開的風險，你覺得自己最放不下的是什麼？",
+  remind:"分辨真正的現實風險與對未知的恐懼。不要因為熟悉就認為一定安全，也不要只因為害怕就逼自己立刻做重大改變。",
+  caution:"",
+  dtitle:"容易抓住熟悉但不適合的事物",dtheme:"直覺、恐懼、安全感、放手",
+  real:"一段關係、一份工作已經讓自己不舒服，卻因為熟悉而捨不得離開。",
+  pts:["害怕改變後會遇到更糟的情況。","別人緊張時，自己也開始感到不安。","有時把熟悉感誤認為安全，把不熟悉誤認為危險。"],
+  q:"我留下來，是因為這件事真的適合我，還是因為我害怕失去熟悉的一切？",
+  dnote:"這不代表空白脾中心的人一定直覺較差，而是可以練習分辨恐懼、熟悉感與實際風險。"},
+ {zh:"情緒",en:"Solar Plexus",theme:"情緒、關係與衝突的壓力",
+  ease:["可以感受情緒，而不必替所有人的情緒負責","他能察覺別人的情緒變化，也可以在不舒服時保留自己的空間。"],
+  not:["為了避免衝突而壓抑自己","別人生氣就感到不安，明明不同意卻說好，或者一直想安撫所有人，直到自己也很累。"],
+  said:"我不敢拒絕朋友，因為我怕她不開心，甚至不再喜歡我。",
+  ask:"如果你拒絕她，她真的不開心，你是不是就一定做錯了？",
+  remind:"別人的情緒不一定是你的責任。你可以理解別人的感受，同時保留自己的界線。",
+  caution:"",
+  dtitle:"容易想避開衝突",dtheme:"情緒、感受、人際張力",
+  real:"對方一生氣，你就很想趕快解決問題，讓大家恢復平靜。",
+  pts:["明明不同意，卻說「沒關係」。","為了避免爭吵，壓下自己的真實想法。","跟情緒強烈的人相處後，自己也變得很激動或疲憊。"],
+  q:"我現在答應對方，是因為我真的願意，還是因為我想讓這場不愉快快點結束？",
+  dnote:"空白情緒中心不代表沒有情緒，而是情緒經驗可能隨情境與他人而有很大的變化。"},
+ {zh:"薦骨",en:"Sacral",theme:"工作、生命力與持續投入的壓力",
+  ease:["尊重自己的精力與休息需求","他能觀察什麼事情消耗自己、什麼事情讓自己感到投入，不必跟別人比誰更能工作。"],
+  not:["一直工作到精疲力竭","看到別人很有幹勁，就覺得自己也應該一樣；明明累了，仍逼自己繼續。"],
+  said:"大家下班後還能繼續做事，為什麼只有我這麼累？",
+  ask:"你是在做自己真正想投入的事情，還是覺得自己應該跟上大家的速度？",
+  remind:"不必用別人的工作量衡量自己的能力。觀察精力變化，允許自己安排休息。",
+  caution:"薦骨空白本身不等於沒有生命力，也不代表一定不能長時間工作。仍要看整張圖、類型與實際生活狀況。",
+  dtitle:"容易誤以為自己還有很多力氣",dtheme:"持續工作、生命動力、勞動能量",
+  real:"跟一個很有幹勁的人一起工作時，自己也能一口氣做很多事；等對方離開，才發現自己其實累了。",
+  pts:["容易跟著別人的工作節奏跑。","忙起來忘記休息，甚至把忙碌當成有價值。","明明已經疲倦，卻覺得自己應該再撐一下。"],
+  q:"如果沒有人陪我工作，也沒有人催促我，我還會用同樣的速度做下去嗎？",
+  dnote:"空白薦骨不等於不能努力，而是不能單憑某一刻的衝勁，判斷自己適合長時間持續工作。"},
+ {zh:"根部",en:"Root",theme:"壓力、時間與完成事情的急迫感",
+  ease:["感受到壓力，但不必立刻消除它","他可以在事情很多時保持觀察，分清楚什麼需要現在處理，什麼可以稍後再做。"],
+  not:["一直趕、一直做，想盡快擺脫壓力","把事情排得滿滿的，急著完成待辦清單，甚至在沒有期限時也覺得自己不能停。"],
+  said:"我明明今天沒有什麼急事，卻還是覺得自己很忙，什麼都想趕快完成。",
+  ask:"如果今天沒有任何人催你，你還會用現在這個速度做事嗎？",
+  remind:"不必把所有壓力都當成必須立即行動的訊號。練習排序、留白，並辨認事情的真正期限。",
+  caution:"",
+  dtitle:"容易一直催促自己",dtheme:"壓力、緊迫感、推動力",
+  real:"一看到待辦清單就感到壓力，總覺得把事情做完，自己才可以真正放鬆。",
+  pts:["明明沒那麼急，卻想趕快完成。","別人一催促，就立刻加快速度。","做完一件事，又馬上找下一件事，難以享受休息。"],
+  q:"這件事真的有時限，還是我只是想盡快擺脫壓力？",dnote:""}
+];
+
+/* 有定義時的實戰解讀 */
+var D = [
+ {theme:"靈感與疑問",
+  ease:"靈感與疑問可以持續出現。他能從不同問題中獲得啟發，也能把靈感帶往值得探索的方向。",
+  over:"腦中一直有新問題，覺得每個問題都必須想通；很難停止思考，容易被無關緊要的疑問佔據注意力。",
+  story:"客人每天都有很多新點子，今天想學心理學，明天想研究投資，後天又想創業。每個想法都很吸引他，但他覺得自己什麼都還沒弄懂。",
+  ask:"你現在思考這個問題，是因為它真的對你重要，還是因為你覺得自己一定要找到答案？",
+  remind:"有靈感不代表每個靈感都需要執行，也不代表每個問題都要由你解決。",extra:""},
+ {theme:"理解、分析與觀點",
+  ease:"能夠形成觀點、分析資訊、建立理解框架，並把複雜的事情整理成自己能理解的方式。",
+  over:"太執著於自己的觀點，難以接受不確定性；反覆分析、過度推理，或急著說服別人自己才是對的。",
+  story:"客人很會分析事情，同事遇到問題都會找他。但當別人不接受他的建議時，他就會不斷解釋，直到對方認同為止。",
+  ask:"當別人不認同你的觀點時，你能不能接受他有不同的理解，而不需要一定說服他？",
+  remind:"你可以信任自己的思考能力，但不必要求所有人都認同你。觀點清晰，不等於所有事情都有唯一答案。",extra:""},
+ {theme:"表達、溝通與行動的出口",
+  ease:"能較穩定地透過自己有定義的通道表達、溝通或採取行動，讓內在的想法被外界看見。",
+  over:"可能習慣一直說、急著發表意見、搶著做事，或太在意自己的表達有沒有得到回應。",
+  story:"客人開會時很容易帶動討論，大家也習慣聽他說話。但有時候，他會不自覺地替別人回答，甚至在對方還沒說完時就插話。",
+  ask:"你表達自己的時候，有沒有留意對方是否也有空間說出他的想法？",
+  remind:"有表達的能力，不代表每個時刻都需要表達。也要看喉嚨中心透過哪些通道連接其他中心，才能更精確地解讀其表達方式。",extra:""},
+ {theme:"身份、愛與方向",
+  ease:"對自己的身份、價值取向或人生方向，有較持續的內在感受；能在不同環境中帶著某種穩定的自我感。",
+  over:"可能太認定「我就是這樣的人」，不願接受自己改變；也可能堅持一條熟悉的道路，即使它已經不再適合自己。",
+  story:"客人一直認為自己是個獨立的人，所以從不向別人求助。即使身邊的人願意幫忙，他也覺得接受協助不符合自己的形象。",
+  ask:"你堅持這個做法，是因為它現在真的適合你，還是因為你一直認為自己就應該如此？",
+  remind:"有穩定的自我感，不代表不能成長或改變。也要觀察自己是否把某種身份變成了限制。",extra:""},
+ {theme:"意志、承諾與價值",
+  ease:"能在適當的事情上展現意志力、承擔承諾、追求目標，並知道自己願意為什麼付出。",
+  over:"可能凡事都想贏、難以示弱、把休息視為失敗，或為了證明自己能做到而承擔太多。",
+  story:"客人很有企圖心，答應的事通常都會做到。但他即使生病，也不願意延期，因為他覺得一旦做不到，就代表自己不夠有能力。",
+  ask:"如果這次你選擇休息或調整承諾，你會覺得自己失敗了嗎？為什麼？",
+  remind:"有意志力不代表必須一直使用意志力。要分辨自己是真心想承擔，還是為了面子、競爭或證明價值而硬撐。",extra:""},
+ {theme:"直覺、警覺與生存感",
+  ease:"在人類圖的框架中，脾中心的定義與較穩定的直覺、警覺或當下的身體感知模式有關。",
+  over:"可能過度依賴第一印象、太快判斷危險，或把熟悉的習慣當成唯一安全的選擇。",
+  story:"客人很敏銳，常能很快察覺環境中的細節。但有時候，他只因為第一次見面不太舒服，就直接認定對方不值得信任。",
+  ask:"你當下察覺到的是什麼具體訊號？後來的實際經驗有沒有支持你的判斷？",
+  remind:"可以留意直覺，但也要讓事實和後續經驗幫助自己校準判斷。不要把每一個不舒服的感覺都當成確定的危險訊號。",extra:""},
+ {theme:"情緒波與感受",
+  ease:"情緒中心有定義，在人類圖中代表有較持續的情緒波動模式。自在時，能逐漸認識自己的情緒節奏，並給自己時間消化感受。",
+  over:"可能在情緒高點太快答應或承諾，在低點太快否定一切；也可能把當下的情緒當成永久的結論。",
+  story:"客人今天非常興奮，立刻答應朋友一起投資；過了兩天，情緒降下來，又開始後悔，覺得自己當時太衝動。",
+  ask:"如果你先給自己一點時間，等情緒沉澱後再看這件事，你的想法會有什麼不同？",
+  remind:"不必要求自己一直保持正面，也不要只根據情緒最高或最低的時刻作重大決定。",
+  extra:"在人類圖的情緒權威中，通常強調給自己時間，經過情緒波後再做決定；不代表每個有定義情緒中心的人都具有情緒權威，仍需確認整張圖。"},
+ {theme:"生命力、工作與持續投入",
+  ease:"在人類圖裡，薦骨有定義通常與較穩定的工作與生命力運作有關，能對合適的事情持續投入。",
+  over:"可能把有能力做的事都接下來、停不下來，或把忙碌當成自己的價值，直到身體已經疲憊才願意休息。",
+  story:"客人做事很有幹勁，一旦開始就能投入很久。但他常常答應太多工作，最後連自己喜歡的事情都沒有時間做。",
+  ask:"你現在投入的這些事情，有多少是你真的想做的？有多少只是因為你知道自己做得到？",
+  remind:"有持續投入的能力，不代表所有事情都值得投入。學習選擇方向，也要觀察自己的疲勞與休息需求。",extra:""},
+ {theme:"壓力、推進力與啟動",
+  ease:"根部中心有定義，在人類圖中與較穩定的壓力運作模式有關，能在壓力下產生推進力，帶動自己處理事情。",
+  over:"可能把壓力當成習慣，總想加快速度、一次完成所有事情，甚至在沒有急事時也替自己製造期限。",
+  story:"客人做事很有效率，總能在期限前完成任務。但只要待辦清單還有一項未完成，他就無法真正休息。",
+  ask:"如果這件事今天不完成也不會有任何損失，你還需要現在就做嗎？",
+  remind:"壓力可以成為推動力，但不是每個壓力都需要立即回應。要分辨真正的期限與自己製造的急迫感。",extra:""}
+];
+
+/* 開口問題庫（空白中心）: [問題, 聽什麼] */
+var O = [
+ ["當你遇到一個暫時沒有答案的問題時，你通常能先放著，還是會一直想弄清楚？","聽他是否感到被問題追著走，而不是只看他想得多不多。"],
+ ["當你已經有一個想法，但別人提出不同意見時，你通常會怎麼反應？","聽他是否需要更多證據、願意調整，或很在意自己是不是正確。"],
+ ["在一群人裡，如果你沒有機會表達自己的想法，你會有什麼感覺？","聽他是否會感到被忽略、自在地聆聽，或其實沒有太大感覺。"],
+ ["你在不同的環境、和不同的人相處時，會覺得自己有很不一樣的表現嗎？","聽他如何描述環境對自己的影響，不預設他一定沒有方向。"],
+ ["當別人請你幫忙，而你其實已經很忙時，你通常會怎麼決定要不要答應？","聽他是否難以拒絕、擔心讓人失望，或能自在地衡量自己的意願。"],
+ ["當一件事讓你覺得不太舒服，但又很熟悉時，你通常會選擇繼續留在裡面，還是重新評估？","聽他如何面對熟悉感、恐懼與改變，不預設他一定害怕離開。"],
+ ["當身邊的人心情不好時，你通常會受到影響嗎？你會怎麼處理？","聽他是否容易受情緒影響、試圖安撫對方，或能保留自己的空間。"],
+ ["當你已經很累，但手上的事情還沒完成時，你通常會繼續做，還是先休息？","聽他如何感受自己的精力與工作要求，不要直接推論他一定沒有持續工作的能力。"],
+ ["當你知道自己還有事情沒完成時，即使沒有截止期限，你會不會也很想趕快做完？","聽他是否感到急迫，還是能按自己的步調安排事情。"]
+];
+
+/* 五大類型提問手冊 */
+var T = [
+ {zh:"顯示者",en:"Manifestor",theme:"行動、自由與告知",
+  explore:"他如何開始事情、如何看待自主權，以及行動時是否容易與別人產生摩擦。",
+  open:"當你突然有一個很想做的事情時，你通常會直接開始，還是會先跟身邊的人商量？",
+  deep:"當別人一直問你為什麼要這樣做，甚至想阻止你時，你通常會有什麼反應？",
+  aware:"如果你可以保有自己的決定權，同時讓重要的人知道你接下來要做什麼，你覺得事情會有什麼不同？",
+  clues:["是否很重視自主權，不喜歡被控制。","是否常因為沒有事先告知，讓別人感到突然或不安。","是否把別人的詢問理解成干涉。"],
+  guide:"顯示者的策略是告知。告知不是請示或徵求批准，而是讓受行動影響的人有所準備。"},
+ {zh:"生產者",en:"Generator",theme:"回應、投入與滿足感",
+  explore:"他如何辨認真正想投入的事情，以及工作或生活中什麼讓他感到滿足或挫敗。",
+  open:"你最近做過什麼事情，是做著做著就很投入，甚至忘記時間的？",
+  deep:"有沒有一些事情，你一開始覺得應該做，做了一段時間後卻越來越沒有動力？",
+  aware:"當你面前有一個新的機會時，你會先因為覺得它很好而答應，還是會留意自己對這個機會有沒有真實的回應？",
+  clues:["是否因為別人說好，就認為自己也應該做。","是否把大量精力花在不想投入的事情上。","做完事情後，感受到的是滿足，還是挫敗。"],
+  guide:"生產者的策略是等待回應。你可以透過具體情境，幫他觀察自己對外界事物的反應，而不是單靠頭腦判斷什麼事情最值得做。"},
+ {zh:"顯示生產者",en:"Manifesting Generator",theme:"多方向、回應與調整",
+  explore:"他如何在不同興趣與任務之間切換，以及如何處理改變方向時的內疚或挫敗。",
+  open:"你有沒有試過同時對很多事情有興趣，開始之後才發現自己又想探索另一個方向？",
+  deep:"當你發現原本的方法不適合，想要改變做法時，你會自然調整，還是會因為覺得自己不夠堅持而責怪自己？",
+  aware:"如果你不需要按照別人的速度或順序完成事情，你會怎樣安排自己的做法？",
+  clues:["是否容易同時投入多個方向。","是否因為跳過某些步驟或改變做法而感到內疚。","是否因為答應得太快，後來才發現自己其實不想做。"],
+  guide:"顯示生產者同樣以等待回應為策略，並常需要在行動過程中調整。實際上仍要觀察他的薦骨回應、決策方式與具體情境，而不是把「多工」當成每位顯示生產者的固定特徵。"},
+ {zh:"投射者",en:"Projector",theme:"看見他人、被認可與引導",
+  explore:"他如何運用觀察力、何時提供建議，以及付出是否得到合適的認可。",
+  open:"你有沒有發現，自己有時候很容易看出別人沒有注意到的問題或細節？",
+  deep:"當你看見一個問題，也知道怎樣改善，但對方沒有詢問你的意見時，你通常會怎麼做？",
+  aware:"當別人真正理解你的能力、主動邀請你分享看法時，你的感受會有什麼不同？",
+  clues:["是否很快看見別人的問題，忍不住想給建議。","是否因為付出沒有被看見而感到苦澀。","是否為了得到認可而過度投入，忽略自己的精力。"],
+  guide:"投射者的策略是等待邀請，尤其涉及重要的關係、工作與人生方向時。這不代表日常生活什麼都不能主動，而是學習辨認何時自己的洞察真正受到認可與歡迎。"},
+ {zh:"反映者",en:"Reflector",theme:"環境、觀察與時間",
+  explore:"他如何感受不同環境、如何觀察生活中的變化，以及是否需要更多時間消化重大決定。",
+  open:"你有沒有發現，跟不同的人相處，或去到不同的地方時，你整個人的感覺會很不一樣？",
+  deep:"有沒有一個環境，讓你特別自在；也有沒有一些地方，讓你待久了就覺得不舒服？",
+  aware:"當你面對一個很重要的決定時，如果不需要立刻回答，你會不會更容易看清自己的想法？",
+  clues:["是否對環境和群體氛圍很敏銳。","是否發現自己在不同環境中有不同的感受。","是否容易受到外界對重大決定的時間壓力影響。"],
+  guide:"反映者的策略是等待月亮週期，通常以約 28 天作為重大決定的觀察參考。這不是每個決定都必須等待 28 天，而是給自己充分時間觀察經驗如何變化。"}
+];
+
+/* 解讀後可以給客人的建議（順序同 T） */
+var A = [
+ {core:"你可以主動，但不必什麼都自己扛。",
+  intro:"顯示者重視自主與發起行動。可以練習在行動前告知會受到影響的人，減少不必要的誤會。",
+  tips:["當你想開始一件事，不需要每次都徵求別人的同意。","但如果你的行動會影響身邊的人，先讓對方知道你的計畫。","當別人提出問題時，先分辨對方是在了解情況，還是真的想控制你。","不必因為重視自由，就拒絕所有人的協助。"],
+  say:"你可以有自己的想法，也可以自己決定要走的方向。只是當你的決定會影響別人時，試著先讓對方知道你準備做什麼。告知不是請示，而是讓彼此少一點誤會。",
+  signal:"容易因為受阻而憤怒，或為了保護自主權而不願意溝通。"},
+ {core:"不是你做得到的事情，都值得你投入。",
+  intro:"生產者可以練習辨認自己對不同機會的回應，而不是只因為別人說這件事很好，就認為自己也應該去做。",
+  tips:["當有新機會出現，先觀察自己是否真的想投入。","不要只因為自己有能力，就把所有事情都接下來。","留意哪些活動讓你有滿足感，哪些事情反覆帶來挫敗。","如果已經投入的方向不再適合，可以重新評估，而不是責怪自己。"],
+  say:"你不需要證明自己什麼都做得到。比起問自己「我能不能做到」，你也可以問問自己「這是我真正想投入的事情嗎？」有能力完成一件事，不代表它一定適合你。",
+  signal:"長期投入不想做的事情，感到挫敗，卻仍然勉強自己繼續。"},
+ {core:"你可以調整路線，不必用別人的速度要求自己。",
+  intro:"顯示生產者可以練習在回應之後採取行動，並在過程中觀察、修正自己的做法。",
+  tips:["對新機會有興趣時，先確認自己的回應，再開始行動。","如果過程中發現更合適的方法，可以重新安排步驟。","不必因為同時有多個興趣，就認定自己不夠專注。","但也要分辨「合理調整」與「因為一時興奮而不斷開新坑」。"],
+  say:"你不一定要按照別人的順序完成每件事。你可以在行動中發現更適合自己的方法，也可以調整路線。重要的是，不要因為想做很多事情，就忘了確認哪些才是你真正想投入的。",
+  signal:"因為急著完成或同時開展太多事情而感到挫敗，或者因為改變做法而責怪自己。"},
+ {core:"你看得見問題，不代表你必須負責解決所有問題。",
+  intro:"投射者可以練習辨認自己的洞察何時受到認可，以及什麼時候適合分享建議。",
+  tips:["當你看見別人的問題時，先確認對方是否願意聽你的想法。","不要把每一次沒有被採納的建議，都解讀成自己不夠好。","選擇願意認識你、理解你能力的人與環境。","留意自己的精力，不要為了得到認可而過度付出。"],
+  say:"你可能很容易看見別人忽略的細節，但不是每一個你看見的問題，都需要由你去解決。你可以先觀察對方是否真的需要你的建議，也留一些空間給自己，不必一直證明你有多大的價值。",
+  signal:"因為不被認可而感到苦澀，或為了讓別人看見自己的能力而不斷付出。"},
+ {core:"給自己時間，也留意你身處的環境。",
+  intro:"反映者可以透過觀察不同環境、不同時間的感受，逐漸認識哪些人事物適合自己。",
+  tips:["留意不同環境和人際關係如何影響自己的感受。","遇到重大決定時，如果條件允許，可以給自己較長的觀察時間。","不必急著把每個階段的感受定義成永遠不變的自己。","同時收集實際資訊，不要只憑某一刻的感覺決定所有事情。"],
+  say:"你不需要急著在今天就弄清楚所有事情。你可以觀察自己在不同環境中的感受，也可以讓重要的決定有更多時間沉澱。慢慢看清楚什麼適合你，比急著給自己一個答案更重要。",
+  signal:"因為環境不合適而感到失望，或在外界催促下太快作出重大決定。"}
+];
+
+/* shape: [type, geometry, label x, label y, inside?] */
+var SH = [
+ ["p","150,12 190,62 110,62",150,52,1],
+ ["p","110,78 190,78 150,130",150,98,1],
+ ["r","128,148,44,44",150,175,1],
+ ["p","150,212 190,252 150,292 110,252",150,256,1],
+ ["p","212,262 254,288 212,314",233,254,0],
+ ["p","90,336 46,368 90,400",68,328,0],
+ ["p","210,336 254,368 210,400",232,328,0],
+ ["r","126,330,48,48",150,359,1],
+ ["r","126,396,48,48",150,425,1]
+];
+
+var NS = "http://www.w3.org/2000/svg";
+var sel = 0, tsel = 0, tab = "state", mode = "blank", view = "centers", notes = {};
+try { notes = JSON.parse(localStorage.getItem("hd9-notes") || "{}") || {}; } catch (e) { notes = {}; }
+try { var s0 = parseInt(localStorage.getItem("hd9-sel"), 10); if (s0 >= 0 && s0 < 9) sel = s0; } catch (e) {}
+
+function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function el(tag, attrs, parent) {
+  var n = document.createElementNS(NS, tag);
+  for (var k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+function hasNote(i) { return !!(notes[i] && notes[i].trim()); }
+
+/* map */
+var svg = document.getElementById("bodygraph");
+el("line", {x1:150,y1:62,x2:150,y2:444,"class":"spine"}, svg);
+var groups = [];
+SH.forEach(function (s, i) {
+  var g = el("g", {"class":"c",tabindex:0,role:"button","aria-label":C[i].zh + "中心 " + C[i].en}, svg);
+  if (s[0] === "p") el("polygon", {points:s[1],"class":"sh"}, g);
+  else { var r = s[1].split(","); el("rect", {x:r[0],y:r[1],width:r[2],height:r[3],"class":"sh"}, g); }
+  var t = el("text", {x:s[2],y:s[3],"class":"lb" + (s[4] ? " in" : "")}, g);
+  t.textContent = C[i].zh;
+  g.addEventListener("click", function () { pick(i); });
+  g.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(i); }
+  });
+  groups.push(g);
+});
+function syncMap() {
+  groups.forEach(function (g, i) {
+    g.classList.toggle("sel", i === sel);
+    g.setAttribute("aria-pressed", i === sel ? "true" : "false");
+  });
+}
+
+/* panel pieces */
+function stateTab(c) {
+  if (mode === "def") {
+    var d = D[sel];
+    return '<div class="pair">' +
+      '<section class="state"><span class="tag good">自在狀態</span><p>' + esc(d.ease) + '</p></section>' +
+      '<section class="state"><span class="tag bad">過度使用時</span><p>' + esc(d.over) + '</p></section></div>';
+  }
+  return '<div class="pair">' +
+    '<section class="state"><span class="tag good">自在狀態</span><h3>' + esc(c.ease[0]) + '</h3><p>' + esc(c.ease[1]) + '</p></section>' +
+    '<section class="state"><span class="tag bad">非我狀態</span><h3>' + esc(c.not[0]) + '</h3><p>' + esc(c.not[1]) + '</p></section></div>' +
+    '<section class="sect"><span class="tag bad">日常裡的樣子</span><h3>' + esc(c.dtitle) + '</h3>' +
+    '<p>' + esc(c.real) + '</p>' +
+    '<ul class="pts">' + c.pts.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join("") + '</ul>' +
+    '<div class="ask"><span class="lbl">覺察問題</span>' + esc(c.q) + '</div>' +
+    (c.dnote ? '<p class="quiet">' + esc(c.dnote) + '</p>' : '') + '</section>';
+}
+
+function readTab(c) {
+  var said, ask, remind, extra, saidLbl;
+  if (mode === "def") {
+    var d = D[sel];
+    said = d.story; ask = d.ask; remind = d.remind; saidLbl = "故事例子";
+    extra = d.extra ? "特別是：" + d.extra : "";
+  } else {
+    said = "「" + c.said + "」"; ask = c.ask; remind = c.remind; saidLbl = "客人說";
+    extra = c.caution ? "特別注意：" + c.caution : "";
+  }
+  return '<dl class="kv">' +
+    '<div><dt>' + saidLbl + '</dt><dd>' + esc(said) + '</dd></div>' +
+    '<div><dt>你可以問</dt><dd class="ask">' + esc(ask) + '</dd></div>' +
+    '<div><dt>提醒客人</dt><dd class="alert">' + esc(remind) + '</dd></div></dl>' +
+    (extra ? '<p class="quiet">' + esc(extra) + '</p>' : '');
+}
+
+function openTab() {
+  return '<dl class="kv"><div><dt>開口問題</dt><dd class="ask">' + esc(O[sel][0]) + '</dd></div>' +
+    '<div><dt>聽什麼</dt><dd>' + esc(O[sel][1]) + '</dd></div></dl>' +
+    '<p class="quiet">客人回答後怎麼接，見頁面下方的<a href="#formula">接話公式</a>。</p>';
+}
+
+function notesTab(c) {
+  return '<label for="noteBox" class="hint" style="display:block">' + esc(c.zh) + '中心的觀察，只存在這個瀏覽器裡</label>' +
+    '<textarea id="noteBox" placeholder="例如：今天在會議上，我又急著說話了。"></textarea>';
+}
+
+function renderCenter() {
+  var c = C[sel];
+  var theme = mode === "def" ? D[sel].theme : c.theme;
+  if (mode === "def" && tab === "open") tab = "state";
+  var tabs = [["state","狀態"],["read","解讀"]];
+  if (mode !== "def") tabs.push(["open","開口問題"]);
+  tabs.push(["notes", hasNote(sel) ? "筆記 ·" : "筆記"]);
+  var content = tab === "state" ? stateTab(c) : tab === "read" ? readTab(c) : tab === "open" ? openTab() : notesTab(c);
+  var p = document.getElementById("panel");
+  p.innerHTML =
+    '<div class="phead"><div><div class="eyebrow">' + esc(c.en) + '</div><h2>' + esc(c.zh) + '中心</h2><p class="theme">' + esc(theme) + '</p></div>' +
+    '<div class="pn"><button type="button" id="prev" aria-label="上一個中心">‹</button><button type="button" id="next" aria-label="下一個中心">›</button></div></div>' +
+    '<div class="tabs" role="tablist">' + tabs.map(function (t) {
+      return '<button class="tab" role="tab" type="button" data-tab="' + t[0] + '" aria-selected="' + (tab === t[0]) + '">' + t[1] + '</button>';
+    }).join("") + '</div><div role="tabpanel">' + content + '</div>';
+  Array.prototype.forEach.call(p.querySelectorAll(".tab"), function (b) {
+    b.addEventListener("click", function () { tab = b.getAttribute("data-tab"); render(); });
+  });
+  document.getElementById("prev").addEventListener("click", function () { pick(sel - 1); });
+  document.getElementById("next").addEventListener("click", function () { pick(sel + 1); });
+  var nb = document.getElementById("noteBox");
+  if (nb) {
+    nb.value = notes[sel] || "";
+    nb.addEventListener("input", function () {
+      notes[sel] = nb.value;
+      try { localStorage.setItem("hd9-notes", JSON.stringify(notes)); } catch (e) {}
+      var t = p.querySelector('.tab[data-tab="notes"]');
+      if (t) t.textContent = hasNote(sel) ? "筆記 ·" : "筆記";
+    });
+  }
+  syncMap();
+}
+
+function renderType() {
+  var t = T[tsel], key = "t" + tsel;
+  function hasT() { return !!(notes[key] && notes[key].trim()); }
+  if (tab !== "clue" && tab !== "advice" && tab !== "notes") tab = "ask";
+  var tabs = [["ask","提問手冊"],["clue","線索與引導"],["advice","給客人的建議"],["notes", hasT() ? "筆記 ·" : "筆記"]];
+  var content;
+  if (tab === "advice") {
+    var a = A[tsel];
+    content = '<dl class="kv">' +
+      '<div><dt>核心提醒</dt><dd class="alert">' + esc(a.core) + '</dd><p class="quiet" style="margin-top:8px">' + esc(a.intro) + '</p></div>' +
+      '<div><dt>你可以建議他</dt><dd><ul class="pts">' + a.tips.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></dd></div>' +
+      '<div><dt>你可以對客人說</dt><dd class="ask">「' + esc(a.say) + '」</dd></div>' +
+      '<div><dt>可以觀察的非我訊號</dt><dd><span class="tag bad">非我訊號</span><p style="margin:6px 0 0">' + esc(a.signal) + '</p></dd></div></dl>' +
+      '<section class="sect"><h3>收尾三步</h3><p class="quiet" style="margin:0">每次解讀結尾，都用這個順序，建議會更有力量。</p>' +
+      '<dl class="kv" style="align-self:stretch;margin-top:8px">' +
+      '<div><dt>第一步　指出他正在經歷的模式</dt><dd class="fq">「我聽到你常常在……的時候，會……」</dd></div>' +
+      '<div><dt>第二步　確認他的感受</dt><dd class="fq">「這樣的情況，對你來說是有幫助的，還是有時候也讓你很累？」</dd></div>' +
+      '<div><dt>第三步　提供一個小小的實踐方向</dt><dd class="fq">「下次再遇到類似情況，你可以先試著……看看會有什麼不同。」</dd></div></dl></section>';
+  } else if (tab === "clue") {
+    content = '<dl class="kv"><div><dt>你要留意的線索</dt><dd><ul class="pts">' +
+      t.clues.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></dd></div>' +
+      '<div><dt>人類圖的引導方向</dt><dd class="guide">' + esc(t.guide) + '</dd></div></dl>';
+  } else if (tab === "notes") {
+    content = '<label for="noteBox" class="hint" style="display:block">' + esc(t.zh) + '的觀察，只存在這個瀏覽器裡</label>' +
+      '<textarea id="noteBox" placeholder="例如：這位客人是投射者，提到最近很想給同事建議。"></textarea>';
+  } else {
+    content = '<p class="lead"><strong>你想探索的方向</strong><br>' + esc(t.explore) + '</p>' +
+      '<dl class="kv">' +
+      '<div><dt>開場問題</dt><dd class="ask">' + esc(t.open) + '</dd></div>' +
+      '<div><dt>深入問題</dt><dd class="ask">' + esc(t.deep) + '</dd></div>' +
+      '<div><dt>覺察問題</dt><dd class="ask">' + esc(t.aware) + '</dd></div></dl>';
+  }
+  var p = document.getElementById("panel");
+  p.innerHTML =
+    '<div class="phead"><div><div class="eyebrow">' + esc(t.en) + '</div><h2>' + esc(t.zh) + '</h2><p class="theme">' + esc(t.theme) + '</p></div>' +
+    '<div class="pn"><button type="button" id="prev" aria-label="上一個類型">‹</button><button type="button" id="next" aria-label="下一個類型">›</button></div></div>' +
+    '<div class="tabs" role="tablist">' + tabs.map(function (x) {
+      return '<button class="tab" role="tab" type="button" data-tab="' + x[0] + '" aria-selected="' + (tab === x[0]) + '">' + x[1] + '</button>';
+    }).join("") + '</div><div role="tabpanel">' + content + '</div>';
+  Array.prototype.forEach.call(p.querySelectorAll(".tab"), function (b) {
+    b.addEventListener("click", function () { tab = b.getAttribute("data-tab"); render(); });
+  });
+  document.getElementById("prev").addEventListener("click", function () { pickType(tsel - 1); });
+  document.getElementById("next").addEventListener("click", function () { pickType(tsel + 1); });
+  var nb = document.getElementById("noteBox");
+  if (nb) {
+    nb.value = notes[key] || "";
+    nb.addEventListener("input", function () {
+      notes[key] = nb.value;
+      try { localStorage.setItem("hd9-notes", JSON.stringify(notes)); } catch (e) {}
+      var tb = p.querySelector('.tab[data-tab="notes"]');
+      if (tb) tb.textContent = hasT() ? "筆記 ·" : "筆記";
+    });
+  }
+  syncTypes();
+}
+
+function render() {
+  if (view === "types") renderType(); else renderCenter();
+}
+
+function pickType(i) {
+  tsel = ((i % 5) + 5) % 5;
+  render();
+}
+
+function pick(i) {
+  sel = ((i % 9) + 9) % 9;
+  try { localStorage.setItem("hd9-sel", String(sel)); } catch (e) {}
+  render();
+}
+
+/* random card */
+var lastDraw = -1;
+function resetDraw() {
+  lastDraw = -1;
+  document.getElementById("drawWho").textContent = "抽一張問題，在忙亂時問自己";
+  document.getElementById("drawQ").textContent = "";
+  document.getElementById("drawBtn").textContent = "抽一張";
+}
+document.getElementById("drawBtn").addEventListener("click", function () {
+  var i; do { i = Math.floor(Math.random() * 9); } while (i === lastDraw);
+  lastDraw = i;
+  document.getElementById("drawWho").textContent = C[i].zh + "中心";
+  document.getElementById("drawQ").textContent = mode === "def" ? D[i].ask : C[i].q;
+  this.textContent = "再抽一張";
+});
+
+/* mode switch */
+var modeBtns = document.querySelectorAll("#mode button");
+Array.prototype.forEach.call(modeBtns, function (b) {
+  b.addEventListener("click", function () {
+    mode = b.getAttribute("data-mode");
+    Array.prototype.forEach.call(modeBtns, function (x) {
+      x.setAttribute("aria-pressed", x === b ? "true" : "false");
+    });
+    document.getElementById("legend").textContent = mode === "def" ? "深色為目前選取的中心" : "白色為空白中心，深色為目前選取";
+    resetDraw();
+    render();
+  });
+});
+
+/* types list + view switch */
+var tBtns = T.map(function (t, i) {
+  var b = document.createElement("button");
+  b.type = "button"; b.className = "titem";
+  b.innerHTML = '<span class="zh">' + esc(t.zh) + '</span><span class="en">' + esc(t.en) + '</span>';
+  b.addEventListener("click", function () { pickType(i); });
+  document.getElementById("tlist").appendChild(b);
+  return b;
+});
+function syncTypes() {
+  tBtns.forEach(function (b, i) { b.setAttribute("aria-pressed", i === tsel ? "true" : "false"); });
+}
+var viewBtns = document.querySelectorAll("#view button");
+Array.prototype.forEach.call(viewBtns, function (b) {
+  b.addEventListener("click", function () {
+    view = b.getAttribute("data-view");
+    tab = view === "types" ? "ask" : "state";
+    Array.prototype.forEach.call(viewBtns, function (x) {
+      x.setAttribute("aria-pressed", x === b ? "true" : "false");
+    });
+    var t = view === "types";
+    document.getElementById("centersSide").hidden = t;
+    document.getElementById("typesSide").hidden = !t;
+    document.getElementById("mode").hidden = t;
+    document.getElementById("mSection").hidden = t;
+    render();
+  });
+});
+
+render();
+
+if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
